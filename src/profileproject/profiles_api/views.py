@@ -3,6 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets , filters
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -95,3 +97,14 @@ class LoginViewSet(viewsets.ViewSet):
 
     def create(self, request):
         return ObtainAuthToken().post(request)
+
+
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.ProfileFeedSerializer
+    permission_classes = (permissions.PostOwnStatus, IsAuthenticatedOrReadOnly)
+    queryset = models.ProfileFeed.objects.all()
+
+    def perform_create(self, serializer):
+        # sets user profile to logged in user
+        serializer.save(user_profile = self.request.user)
